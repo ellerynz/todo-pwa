@@ -7,7 +7,8 @@ class App extends Component {
   state = {
     items: [],
     loading: true,
-    todoItem: ''
+    todoItem: '',
+    online: true
   }
 
   componentDidMount() {
@@ -16,6 +17,18 @@ class App extends Component {
     .then(items => {
       this.setState({ items, loading: false })
     })
+    window.addEventListener('online', this.updateConnectionStatus);
+    window.addEventListener('offline', this.updateConnectionStatus);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('online');
+    window.removeEventListener('offline');
+  }
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/NavigatorOnLine/Online_and_offline_events
+  updateConnectionStatus = () => {
+    this.setState({ online: navigator.onLine })
   }
 
   addItem = (e) => {
@@ -59,6 +72,10 @@ class App extends Component {
             Todo List
           </span>
         </nav>
+
+        { !this.state.online &&
+          <span>Offline! Some features are unavailable until you are online again</span>
+        }
 
         <div className="px-3 py-2">
 
