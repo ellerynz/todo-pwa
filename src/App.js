@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import logo from './logo.svg';
 import './App.css';
 
-class App extends Component {
+class List extends Component {
 
   state = {
     items: [],
@@ -22,8 +23,8 @@ class App extends Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('online');
-    window.removeEventListener('offline');
+    window.removeEventListener('online', this.updateConnectionStatus);
+    window.removeEventListener('offline', this.updateConnectionStatus);
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/NavigatorOnLine/Online_and_offline_events
@@ -76,6 +77,7 @@ class App extends Component {
         { !this.state.online &&
           <span>Offline! Some features are unavailable until you are online again</span>
         }
+        <Link to="/profile">Profile</Link>
 
         <div className="px-3 py-2">
 
@@ -141,4 +143,10 @@ class App extends Component {
   }
 }
 
-export default App
+export default () =>
+  <Router>
+    <div>
+      <Route path="/" exact component={List} />
+      <Route path="/profile" exact component={() => <div><Link to="/">Back</Link><h1>Profile</h1><p>This is your profile</p></div> } />
+    </div>
+  </Router>
