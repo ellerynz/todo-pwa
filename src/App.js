@@ -143,10 +143,37 @@ class List extends Component {
   }
 }
 
+class Profile extends Component {
+  state = {
+    imageSrc: null,
+  };
+
+  imageCaptured = (file) => {
+    if(file !== null) {
+      this.setState({ imageSrc: URL.createObjectURL(file) });
+    }
+  };
+
+  render() {
+    return (
+      <div>
+        <Link to="/">Back</Link>
+        <h1>Profile</h1>
+        <p>This is your profile</p>
+        { this.state.imageSrc &&
+          <img class="profile-image" alt="" src={this.state.imageSrc} />
+        }
+        {/* Assuming only one file can be selected */}
+        <input type="file" accept="image/*" onChange={e => this.imageCaptured(e.target.files[0])} />
+      </div>
+    );
+  };
+};
+
 export default () =>
   <Router>
     <div>
       <Route path="/" exact component={List} />
-      <Route path="/profile" exact component={() => <div><Link to="/">Back</Link><h1>Profile</h1><p>This is your profile</p></div> } />
+      <Route path="/profile" exact component={Profile} />
     </div>
   </Router>

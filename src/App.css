@@ -39,3 +39,7 @@ body {
 
   -webkit-touch-callout: none;
 }
+
+.profile-image {
+  width: 200px;
+}
