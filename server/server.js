@@ -5,10 +5,27 @@ const webpush = require('web-push')
 const dotenv = require('dotenv')
 
 dotenv.load()
-const publicVapidKey = process.env.PUBLIC_VAPID_KEY;
-const privateVapidKey = process.env.PRIVATE_VAPID_KEY;
+const vapidEmail = process.env.VAPID_EMAIL;
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 
-webpush.setVapidDetails('mailto:YOLO@SWAGGINS.io', publicVapidKey, privateVapidKey);
+if (!process.env.VAPID_EMAIL || !process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+  console.log('-'.repeat(50));
+  console.log('We need some extra information before beginning:');
+  console.log("- Create a server/.env file");
+  console.log("- Add your email as VAPID_EMAIL");
+  console.log("- Add the following as VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY:");
+  console.log(webpush.generateVAPIDKeys());
+  console.log("Then run `yarn start` again :)")
+  console.log('-'.repeat(50))
+  return;
+}
+
+webpush.setVapidDetails(
+  `mailto:${vapidEmail}`,
+  vapidPublicKey,
+  vapidPrivateKey
+);
 
 const app = express()
 const port = 4567
@@ -29,17 +46,23 @@ app.use(function(req, res, next) {
   next();
 });
 
+// Using these 'let's as a faux-db
 let items = [
   { id: uuidv4(), item: 'Learn about PWAs' },
   { id: uuidv4(), item: 'Make an awesome app' }
 ]
-
 let storedSubscription = null;
 
 app.post('/subscribe', (req, res) => {
+  console.log('/subscribe');
   storedSubscription = req.body;
   res.status(201).json({});
 });
+
+app.get('/vapid_public_key', (req, res) => {
+  console.log('/vapid_public_key');
+  res.json({ vapidPublicKey })
+})
 
 app.get('/items.json', (req, res) => {
   res.json(items)

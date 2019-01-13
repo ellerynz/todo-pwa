@@ -20,9 +20,6 @@ const isLocalhost = Boolean(
     )
 );
 
-const vapidPublicKey = 'BITgHw6DRYmc3L53HRAZKH3fE72E1SUUwykyjIsodHRaEhyIHR-pGWuBiJ1ITZn82FXud6ik3y0EQqdD99e1sMo'
-const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-
 export function register(config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
@@ -49,24 +46,11 @@ export function register(config) {
             'This web app is being served cache-first by a service ' +
               'worker. To learn more, visit http://bit.ly/CRA-PWA'
           );
-          registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: convertedVapidKey
-          }).then((subscription) => {
-            fetch('http://localhost:4567/subscribe', {
-              method: 'POST',
-              body: JSON.stringify(subscription),
-              headers: {
-                'content-type': 'application/json'
-              }
-            }).then((resp) => {
-              console.log('Subscribed!');
-              console.log(resp);
-            }).catch((error) => {
-              console.log('Error subscribing:');
-              console.log(error);
-            });
-          })
+
+          fetch('http://localhost:4567/vapid_public_key')
+            .then(response => response.json())
+            .then(response => registerPush(registration, response.vapidPublicKey))
+            .catch(error => console.log('Error fetching vapid public key'));
         });
       } else {
         // Is not localhost. Just register service worker
@@ -74,6 +58,31 @@ export function register(config) {
       }
     });
   }
+}
+
+function registerPush(registration, vapidKey) {
+  const convertedVapidKey = urlBase64ToUint8Array(vapidKey);
+  registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: convertedVapidKey
+  }).then((subscription) => {
+    fetch('http://localhost:4567/subscribe', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+      headers: {
+        'content-type': 'application/json'
+      }
+    }).then((resp) => {
+      console.log('Subscribed!');
+      console.log(resp);
+    }).catch((error) => {
+      console.log('Error subscribing to server:');
+      console.log(error);
+    });
+  }).catch((error) => {
+    console.log('Error subscribing with service worker:');
+    console.log(error);
+  });
 }
 
 // https://www.npmjs.com/package/web-push#using-vapid-key-for-applicationserverkey

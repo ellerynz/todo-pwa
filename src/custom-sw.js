@@ -29,5 +29,3 @@ workbox.precaching.precacheAndRoute(self.__precacheManifest || []);
 
 // app-shell
 workbox.routing.registerRoute("/", workbox.strategies.networkFirst());
-
-console.log('custom-sw');
