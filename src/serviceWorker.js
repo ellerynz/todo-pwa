@@ -20,6 +20,9 @@ const isLocalhost = Boolean(
     )
 );
 
+const vapidPublicKey = 'BITgHw6DRYmc3L53HRAZKH3fE72E1SUUwykyjIsodHRaEhyIHR-pGWuBiJ1ITZn82FXud6ik3y0EQqdD99e1sMo'
+const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
 export function register(config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
@@ -41,11 +44,29 @@ export function register(config) {
         // Add some additional logging to localhost, pointing developers to the
         // service worker/PWA documentation.
         console.log(process.env.PUBLIC_URL);
-        navigator.serviceWorker.ready.then(() => {
+        navigator.serviceWorker.ready.then((registration) => {
           console.log(
             'This web app is being served cache-first by a service ' +
               'worker. To learn more, visit http://bit.ly/CRA-PWA'
           );
+          registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+          }).then((subscription) => {
+            fetch('http://localhost:4567/subscribe', {
+              method: 'POST',
+              body: JSON.stringify(subscription),
+              headers: {
+                'content-type': 'application/json'
+              }
+            }).then((resp) => {
+              console.log('Subscribed!');
+              console.log(resp);
+            }).catch((error) => {
+              console.log('Error subscribing:');
+              console.log(error);
+            });
+          })
         });
       } else {
         // Is not localhost. Just register service worker
@@ -53,6 +74,22 @@ export function register(config) {
       }
     });
   }
+}
+
+// https://www.npmjs.com/package/web-push#using-vapid-key-for-applicationserverkey
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
 
 function registerValidSW(swUrl, config) {

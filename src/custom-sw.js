@@ -4,6 +4,13 @@ workbox.core.setLogLevel(workbox.core.LOG_LEVELS.debug);
 
 self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+self.addEventListener('push', event => {
+  const { title, text } = JSON.parse(event.data.text());
+  self.registration.showNotification(title, {
+    body: text,
+    icon: 'http://mongoosejs.com/docs/images/mongoose5_62x30_transparent.png',
+  })
+})
 
 // Cache 3rd party assets
 workbox.routing.registerRoute(

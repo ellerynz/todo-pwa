@@ -1,6 +1,14 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const uuidv4 = require('uuid/v4')
+const webpush = require('web-push')
+const dotenv = require('dotenv')
+
+dotenv.load()
+const publicVapidKey = process.env.PUBLIC_VAPID_KEY;
+const privateVapidKey = process.env.PRIVATE_VAPID_KEY;
+
+webpush.setVapidDetails('mailto:YOLO@SWAGGINS.io', publicVapidKey, privateVapidKey);
 
 const app = express()
 const port = 4567
@@ -26,6 +34,13 @@ let items = [
   { id: uuidv4(), item: 'Make an awesome app' }
 ]
 
+let storedSubscription = null;
+
+app.post('/subscribe', (req, res) => {
+  storedSubscription = req.body;
+  res.status(201).json({});
+});
+
 app.get('/items.json', (req, res) => {
   res.json(items)
 })
@@ -36,6 +51,14 @@ app.post('/items.json', (req, res) => {
     item: req.body.item
   })
   res.json(items)
+
+  const payload = JSON.stringify({
+    title: 'Item added',
+    text: req.body.item,
+  });
+  webpush.sendNotification(storedSubscription, payload).catch(error => {
+    console.error(error.stack);
+  });
 })
 
 app.delete('/items.json', (req, res) => {
