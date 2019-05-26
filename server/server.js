@@ -74,7 +74,7 @@ app.post('/items.json', (req, res) => {
     item: req.body.item
   })
   res.json(items)
-
+  console.log('POST /items.json', req.body.item);
   const payload = JSON.stringify({
     title: 'Item added',
     text: req.body.item,
